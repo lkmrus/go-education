@@ -1,29 +1,46 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
-	"os"
+	"net/http"
 )
 
-func loopback() func() {
-	i := 10
-	return func() {
-		i += 1
-		fmt.Println(i)
+type GetPostResponse struct {
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+}
+
+func getPosts(url string) (*[]GetPostResponse, error) {
+	if url == "" {
+		return nil, fmt.Errorf("url is empty")
 	}
+
+	var result, err = http.Get(url)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	defer result.Body.Close()
+
+	var PostData []GetPostResponse
+	err = json.NewDecoder(result.Body).Decode(&PostData)
+	if err != nil {
+		fmt.Println(err.Error())
+		return nil, err
+	}
+
+	return &PostData, nil
 }
 
 func main() {
-	err := godotenv.Load()
+	result, err := getPosts("https://my-json-server.typicode.com/typicode/demo/posts")
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		fmt.Println(err.Error())
+		return
 	}
-	TEST := os.Getenv("TEST")
-	envArray := os.Environ()
-	for _, env := range envArray {
-		fmt.Println(env)
-	}
-	fmt.Println(TEST)
 
+	fmt.Println("Result:")
+	fmt.Println(result)
 }
