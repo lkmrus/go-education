@@ -6,14 +6,16 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
 
-func ping(url string, statusCh chan int, chanErr chan error) {
+func ping(url string, wg *sync.WaitGroup) {
+	defer wg.Done()
 	resp, err := http.Get(url)
 	if err != nil {
-		chanErr <- err
+		fmt.Println(err.Error())
 	} else {
-		statusCh <- resp.StatusCode
+		fmt.Println(resp.Status)
 	}
 }
 
@@ -27,21 +29,15 @@ func main() {
 	}
 
 	urls := strings.Split(string(result), "\n")
-	statusCh := make(chan int)
-	errorCh := make(chan error)
+
+	var wg sync.WaitGroup
+
 	for _, value := range urls {
 		fmt.Println(value)
 		go func() {
-			ping(value, statusCh, errorCh)
+			wg.Add(1)
+			ping(value, &wg)
 		}()
 	}
-
-	for range urls {
-		select {
-		case status := <-statusCh:
-			fmt.Println("Response -> ", status)
-		case err := <-errorCh:
-			fmt.Println(err)
-		}
-	}
+	wg.Wait()
 }
