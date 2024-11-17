@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 type GetPostResponse struct {
@@ -34,13 +35,24 @@ func getPosts(url string) (*[]GetPostResponse, error) {
 	return &PostData, nil
 }
 
+func showLoader() {
+	//	for with timeout in cycle
+	symbols := []string{"|", "/", "-", "\\"}
+	for i := 0; i < 1000; i++ {
+		for _, val := range symbols {
+			time.Sleep(100 * time.Millisecond)
+			fmt.Println(val)
+		}
+	}
+}
+
 func main() {
 	result, err := getPosts("https://my-json-server.typicode.com/typicode/demo/posts")
 	if err != nil {
 		fmt.Println(err.Error())
 		return
 	}
-
+	showLoader()
 	fmt.Println("Result:")
 	fmt.Println(result)
 }
