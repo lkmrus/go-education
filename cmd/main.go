@@ -57,7 +57,3 @@ func main() {
 	log.Println("shutting down")
 	os.Exit(0)
 }
-
-func HomeHandler(writer http.ResponseWriter, request *http.Request) {
-	writer.Write([]byte("Hello, World!"))
-}
