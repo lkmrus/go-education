@@ -7,18 +7,20 @@ import (
 
 type User struct{}
 
-func (u *User) Route() *mux.Router {
+func Route() *mux.Router {
+	user := User{}
+
 	r := mux.NewRouter()
 	router := r.PathPrefix("/user").Subrouter()
-	router.HandleFunc("/register", register)
-	router.HandleFunc("/login", login)
+	router.HandleFunc("/register", user.register)
+	router.HandleFunc("/login", user.login)
 	return router
 }
 
-func register(writer http.ResponseWriter, request *http.Request) {
+func (u *User) register(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte("Register!"))
 }
 
-func login(writer http.ResponseWriter, request *http.Request) {
+func (u *User) login(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte("Login!"))
 }
