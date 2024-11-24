@@ -4,6 +4,7 @@ import (
 	"context"
 	"demo/app/internal/auth"
 	cfg "demo/app/internal/config"
+	"demo/app/pkg/db"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -15,6 +16,11 @@ import (
 )
 
 func main() {
+	config := cfg.Config{}
+	configData := config.Init()
+
+	_ = db.NewDb(configData)
+
 	var wait time.Duration
 	flag.DurationVar(&wait, "graceful-timeout", time.Second*15, "the duration for which the server gracefully wait for existing connections to finish - e.g. 15s or 1m")
 	flag.Parse()
@@ -24,9 +30,6 @@ func main() {
 	// merge all routes
 	authRoute := auth.Route()
 	mainRouter.PathPrefix("/").Handler(authRoute)
-
-	config := cfg.Config{}
-	configData := config.Init()
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:" + configData.Port,

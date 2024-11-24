@@ -1,5 +1,6 @@
 .idea/
-postgres_data/
+/postgres_data/
 .vscode/
 app
 /cmd/go_build_demo_app_cmd
+.env
