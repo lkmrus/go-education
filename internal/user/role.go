@@ -3,6 +3,7 @@ package user
 import (
 	cfg "demo/app/internal/config"
 	"demo/app/pkg/db"
+	"demo/app/pkg/utils"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -54,7 +55,7 @@ func (role *Role) CreateRole(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	// TODO remove this
+	// TODO remove this to common area
 	dbConnection := db.NewDb(configData)
 
 	if !checkAvailableRoles(payload.Name) {
@@ -68,6 +69,9 @@ func (role *Role) CreateRole(writer http.ResponseWriter, request *http.Request) 
 
 func (role *Role) attachRole(writer http.ResponseWriter, request *http.Request) {
 	var payload AttachRoleRequest
+
+	userId := request.PathValue("userId")
+	payload.UserID = utils.ConvertStringToUint(userId)
 
 	err := json.NewDecoder(request.Body).Decode(&payload)
 	if err != nil {
@@ -98,6 +102,6 @@ func RoleRoute() *mux.Router {
 	r := mux.NewRouter()
 	router := r.PathPrefix("/role").Subrouter()
 	router.HandleFunc("/", role.CreateRole).Methods("POST")
-	router.HandleFunc("/user/", role.attachRole).Methods("POST")
+	router.HandleFunc("/user/{userId}", role.attachRole).Methods("POST")
 	return router
 }
