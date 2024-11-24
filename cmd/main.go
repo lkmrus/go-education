@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"demo/app/internal/auth"
 	cfg "demo/app/internal/config"
+	"demo/app/internal/user"
 	"demo/app/pkg/db"
 	"flag"
 	"fmt"
@@ -28,7 +28,7 @@ func main() {
 	mainRouter := mux.NewRouter()
 
 	// merge all routes
-	authRoute := auth.Route()
+	authRoute := user.Route()
 	mainRouter.PathPrefix("/").Handler(authRoute)
 
 	srv := &http.Server{
