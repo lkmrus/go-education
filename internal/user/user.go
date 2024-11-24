@@ -1,6 +1,8 @@
 package user
 
 import (
+	"demo/app/internal/config"
+	"demo/app/pkg/db"
 	"encoding/json"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -54,10 +56,35 @@ func (u *User) register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	// TODO create user
-	fmt.Println(hash)
+	config := config.Config{}
+	configData := config.Init()
+	dbConnection := db.NewDb(configData)
 
-	writer.Write([]byte("Register!"))
+	userRepoStruct := UserRepository{
+		User: &User{
+			Name:     payload.Name,
+			Email:    payload.Email,
+			Password: hash,
+		},
+		Database: db.NewDb(configData),
+	}
+
+	userRepo := userRepoStruct.NewUserRepository(dbConnection)
+	result, createErr := userRepo.CreateUser(userRepo.User)
+	if createErr != nil {
+		Json(writer, createErr.Error(), 500)
+		return
+	}
+
+	result.Password = "********"
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(201)
+	jsonBytes, err := json.Marshal(result)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	writer.Write(jsonBytes)
 }
 
 func (u *User) login(writer http.ResponseWriter, request *http.Request) {
