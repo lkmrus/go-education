@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
@@ -20,6 +21,25 @@ func Route() *mux.Router {
 }
 
 func (u *User) register(writer http.ResponseWriter, request *http.Request) {
+	var payload RegisterRequest
+
+	err := json.NewDecoder(request.Body).Decode(&payload)
+	if err != nil {
+		Json(writer, err.Error(), 402)
+		return
+	}
+
+	err = validator.New().Struct(payload)
+	if err != nil {
+		Json(writer, err.Error(), 402)
+		return
+	}
+
+	if payload.Email == "" || payload.Password == "" {
+		Json(writer, "Email and password are required", 400)
+		return
+	}
+
 	writer.Write([]byte("Register!"))
 }
 
