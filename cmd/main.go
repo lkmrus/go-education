@@ -28,8 +28,9 @@ func main() {
 	mainRouter := mux.NewRouter()
 
 	// merge all routes
-	authRoute := user.Route()
-	mainRouter.PathPrefix("/").Handler(authRoute)
+	authRoute := user.UserRoute()
+	roleRoute := user.RoleRoute()
+	mainRouter.PathPrefix("/").Handler(authRoute).Handler(roleRoute)
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:" + configData.Port,

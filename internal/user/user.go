@@ -18,7 +18,7 @@ type User struct {
 	Password string `json:"password"`
 }
 
-func Route() *mux.Router {
+func UserRoute() *mux.Router {
 	user := User{}
 
 	r := mux.NewRouter()
@@ -92,7 +92,6 @@ func Json(writer http.ResponseWriter, response any, statusCode int) {
 }
 
 func HashPassword(password string) (string, error) {
-	// GenerateFromPassword возвращает bcrypt хеш пароля с заданной сложностью
 	// DefaultCost = 10
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

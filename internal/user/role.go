@@ -3,7 +3,10 @@ package user
 import (
 	cfg "demo/app/internal/config"
 	"demo/app/pkg/db"
+	"encoding/json"
+	"github.com/gorilla/mux"
 	"gorm.io/gorm"
+	"net/http"
 )
 
 func checkAvailableRoles(role string) bool {
@@ -30,12 +33,69 @@ type RoleUser struct {
 	RoleId uint
 }
 
-func (role *Role) NewRole() *Role {
+type AttachRoleRequest struct {
+	RoleName string `json:"role"`
+	UserID   uint   `json:"userId"`
+}
+
+type CreateRoleRequest struct {
+	Name string `json:"name"`
+}
+
+func NewRole(name string) *Role {
+	return &Role{Name: name}
+}
+
+func (role *Role) CreateRole(writer http.ResponseWriter, request *http.Request) {
+	config := cfg.Config{}
+	configData := config.Init()
+
+	var payload CreateRoleRequest
+
+	err := json.NewDecoder(request.Body).Decode(&payload)
+	if err != nil {
+		Json(writer, err.Error(), 402)
+		return
+	}
+
+	dbConnection := db.NewDb(configData)
+
+	dbConnection.FirstOrCreate(role, Role{Name: role.Name})
+	Json(writer, role, 201)
+}
+
+func (role *Role) attachRole(writer http.ResponseWriter, request *http.Request) {
+	var payload AttachRoleRequest
+
+	err := json.NewDecoder(request.Body).Decode(&payload)
+	if err != nil {
+		Json(writer, err.Error(), 402)
+		return
+	}
+
 	config := cfg.Config{}
 	configData := config.Init()
 
 	dbConnection := db.NewDb(configData)
 
-	dbConnection.FirstOrCreate(role, Role{Name: role.Name})
-	return role
+	dbConnection.First(&role, Role{Name: payload.RoleName})
+
+	roleUser := &RoleUser{
+		UserId: payload.UserID,
+		RoleId: role.ID,
+	}
+	tx := dbConnection.FirstOrCreate(roleUser)
+	tx.Commit()
+
+	Json(writer, roleUser, 201)
+}
+
+func RoleRoute() *mux.Router {
+	role := Role{}
+
+	r := mux.NewRouter()
+	router := r.PathPrefix("/role").Subrouter()
+	router.HandleFunc("/", role.CreateRole).Methods("POST")
+	router.HandleFunc("/user/", role.attachRole).Methods("POST")
+	return router
 }
