@@ -2,13 +2,21 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 )
 
-type User struct{}
+type User struct {
+	gorm.Model
+	Name     string `json:"name"`
+	Email    string `json:"email" gorm:"uniqueIndex"`
+	Password string `json:"password"`
+}
 
 func Route() *mux.Router {
 	user := User{}
@@ -39,6 +47,15 @@ func (u *User) register(writer http.ResponseWriter, request *http.Request) {
 		Json(writer, "Email and password are required", 400)
 		return
 	}
+
+	hash, errHash := HashPassword(payload.Password)
+	if errHash != nil {
+		Json(writer, errHash.Error(), 500)
+		return
+	}
+
+	// TODO create user
+	fmt.Println(hash)
 
 	writer.Write([]byte("Register!"))
 }
@@ -72,4 +89,19 @@ func Json(writer http.ResponseWriter, response any, statusCode int) {
 		log.Fatal(err.Error())
 	}
 	writer.Write(jsonBytes)
+}
+
+func HashPassword(password string) (string, error) {
+	// GenerateFromPassword возвращает bcrypt хеш пароля с заданной сложностью
+	// DefaultCost = 10
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("error hashing password: %w", err)
+	}
+	return string(bytes), nil
+}
+
+func CheckPassword(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
 }
