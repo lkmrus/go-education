@@ -42,10 +42,6 @@ type CreateRoleRequest struct {
 	Name string `json:"name"`
 }
 
-func NewRole(name string) *Role {
-	return &Role{Name: name}
-}
-
 func (role *Role) CreateRole(writer http.ResponseWriter, request *http.Request) {
 	config := cfg.Config{}
 	configData := config.Init()
@@ -58,7 +54,13 @@ func (role *Role) CreateRole(writer http.ResponseWriter, request *http.Request) 
 		return
 	}
 
+	// TODO remove this
 	dbConnection := db.NewDb(configData)
+
+	if !checkAvailableRoles(payload.Name) {
+		Json(writer, "Role not available", 400)
+		return
+	}
 
 	dbConnection.FirstOrCreate(role, Role{Name: role.Name})
 	Json(writer, role, 201)
