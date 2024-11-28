@@ -104,6 +104,22 @@ func (u *User) login(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	if !CheckPassword(payload.Password, "hash") {
+		Json(writer, "not allowed", 400)
+		return
+	}
+
+	passwordHash, err := HashPassword(payload.Password)
+	if err != nil {
+		Json(writer, err.Error(), 500)
+		return
+	}
+
+	if payload.Password != passwordHash {
+		Json(writer, "password was wrong", 400)
+		return
+	}
+
 	Json(writer, response, 201)
 }
 

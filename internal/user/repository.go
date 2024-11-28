@@ -26,3 +26,12 @@ func (repo *UserRepository) NewUserRepository(connection *db.Db) *UserRepository
 		Database: connection,
 	}
 }
+
+func (repo *UserRepository) Find(email string) (*User, error) {
+	user := &User{}
+	result := repo.Database.Where("email = ?", email).First(user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return user, nil
+}
