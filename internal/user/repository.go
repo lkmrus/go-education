@@ -18,6 +18,7 @@ func (repo *UserRepository) CreateUser(user *User) (*User, error) {
 	if result.Error != nil {
 		return nil, result.Error
 	}
+
 	return user, nil
 }
 

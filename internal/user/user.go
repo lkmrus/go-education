@@ -1,8 +1,6 @@
 package user
 
 import (
-	"demo/app/internal/config"
-	"demo/app/pkg/db"
 	"encoding/json"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -18,6 +16,7 @@ type User struct {
 	Name     string `json:"name"`
 	Email    string `json:"email" gorm:"uniqueIndex"`
 	Password string `json:"password"`
+	Repo     *UserRepository
 }
 
 func UserRoute() *mux.Router {
@@ -56,27 +55,18 @@ func (u *User) register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	config := config.Config{}
-	configData := config.Init()
-	dbConnection := db.NewDb(configData)
+	fmt.Println(hash)
 
-	userRepoStruct := UserRepository{
-		User: &User{
-			Name:     payload.Name,
-			Email:    payload.Email,
-			Password: hash,
-		},
-		Database: db.NewDb(configData),
-	}
+	result, createErr := u.Repo.CreateUser(&User{
+		Name:     payload.Name,
+		Email:    payload.Email,
+		Password: hash,
+	})
 
-	userRepo := userRepoStruct.NewUserRepository(dbConnection)
-	result, createErr := userRepo.CreateUser(userRepo.User)
 	if createErr != nil {
 		Json(writer, createErr.Error(), 500)
 		return
 	}
-
-	result.Password = "********"
 
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(201)
