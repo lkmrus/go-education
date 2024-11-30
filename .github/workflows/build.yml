@@ -30,7 +30,6 @@ jobs:
         env:
           DN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         with:
-          file: ./Dockerfile
           platforms: linux/amd64
           push: false
           tags: lkmrus/go-education:latest
