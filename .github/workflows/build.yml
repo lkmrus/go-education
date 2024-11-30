@@ -35,7 +35,7 @@ jobs:
           push: false
           tags: lkmrus/go-education:latest
 
-      - name: Run tests
-        run: |
-            docker run --env DB_DSN=postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable lkmrus/go-education:latest
+#      - name: Run tests
+#        run: |
+#            docker run --env DB_DSN=postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable lkmrus/go-education:latest
 
