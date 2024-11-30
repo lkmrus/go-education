@@ -42,12 +42,16 @@ func (repo *UserRepository) NewUserRepository(connection *db.Db) *UserRepository
 }
 
 func (repo *UserRepository) Find(email string) (*User, error) {
-	user := &User{}
-	result := repo.Database.Where("email = ?", email).First(user)
-	if result.Error != nil {
-		return nil, result.Error
+	var user User
+	res := repo.Database.Where("email = ?", email).First(&user)
+	if res.Error != nil {
+		if res.Error.Error() == "record not found" {
+			return &user, nil
+		}
+		return nil, res.Error
 	}
-	return user, nil
+
+	return &user, nil
 }
 
 func (role *RoleRepository) CreateRole(writer http.ResponseWriter, request *http.Request) {

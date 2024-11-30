@@ -48,13 +48,24 @@ func (uRepo *UserRepository) register(writer http.ResponseWriter, request *http.
 	}
 
 	if payload.Email == "" || payload.Password == "" {
-		Json(writer, "Email and password are required", 400)
+		Json(writer, "bad.request", 400)
 		return
 	}
 
 	hash, errHash := HashPassword(payload.Password)
 	if errHash != nil {
 		Json(writer, errHash.Error(), 500)
+		return
+	}
+
+	oldUser, findUserErr := uRepo.Find(payload.Email)
+	if findUserErr != nil {
+		Json(writer, findUserErr.Error(), 500)
+		return
+	}
+
+	if oldUser.ID != 0 {
+		Json(writer, "already.exists", 409)
 		return
 	}
 
@@ -92,25 +103,30 @@ func (uRepo *UserRepository) login(writer http.ResponseWriter, request *http.Req
 	}
 
 	if payload.Email == "" || payload.Password == "" {
-		Json(writer, "Email and password are required", 400)
+		Json(writer, "bad.params", 400)
 		return
 	}
 
-	if !CheckPassword(payload.Password, "hash") {
-		Json(writer, "not allowed", 400)
+	user, findErr := uRepo.Find(payload.Email)
+	if findErr != nil {
+		Json(writer, findErr.Error(), 500)
 		return
 	}
 
-	passwordHash, err := HashPassword(payload.Password)
-	if err != nil {
-		Json(writer, err.Error(), 500)
+	if user.ID == 0 {
+		Json(writer, "not.found", 404)
 		return
 	}
 
-	if payload.Password != passwordHash {
-		Json(writer, "password was wrong", 400)
+	if !CheckPassword(payload.Password, user.Password) {
+		Json(writer, "not.allowed", 400)
 		return
 	}
+
+	// TODO JWTToken(user.ID)
+	var JWT = "XXXX"
+
+	response.Token = response.Token + " " + JWT
 
 	Json(writer, response, 201)
 }
