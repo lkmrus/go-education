@@ -31,7 +31,9 @@ jobs:
           DN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         with:
           context: .
+          platforms: linux/amd64
           push: false
+          load: true
           tags: lkmrus/go-education:latest
 
 #      - name: Run tests
