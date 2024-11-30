@@ -19,6 +19,8 @@ jobs:
         ports:
           - 5432:5432
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: Setup qemu
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -29,6 +31,8 @@ jobs:
           DN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         with:
           context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
           push: false
           load: true
           tags: lkmrus/go-education:latest
