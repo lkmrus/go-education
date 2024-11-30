@@ -1,13 +1,9 @@
 package user
 
 import (
-	cfg "demo/app/internal/config"
 	"demo/app/pkg/db"
-	"demo/app/pkg/utils"
-	"encoding/json"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
-	"net/http"
 )
 
 func checkAvailableRoles(role string) bool {
@@ -43,65 +39,14 @@ type CreateRoleRequest struct {
 	Name string `json:"name"`
 }
 
-func (role *Role) CreateRole(writer http.ResponseWriter, request *http.Request) {
-	config := cfg.Config{}
-	configData := config.Init()
-
-	var payload CreateRoleRequest
-
-	err := json.NewDecoder(request.Body).Decode(&payload)
-	if err != nil {
-		Json(writer, err.Error(), 402)
-		return
+func RoleRoute(dbConnection *db.Db) *mux.Router {
+	roleRepository := RoleRepository{
+		Database: dbConnection,
 	}
-
-	// TODO remove this to common area
-	dbConnection := db.NewDb(configData)
-
-	if !checkAvailableRoles(payload.Name) {
-		Json(writer, "Role not available", 400)
-		return
-	}
-
-	dbConnection.FirstOrCreate(role, Role{Name: role.Name})
-	Json(writer, role, 201)
-}
-
-func (role *Role) attachRole(writer http.ResponseWriter, request *http.Request) {
-	var payload AttachRoleRequest
-
-	userId := request.PathValue("userId")
-	payload.UserID = utils.ConvertStringToUint(userId)
-
-	err := json.NewDecoder(request.Body).Decode(&payload)
-	if err != nil {
-		Json(writer, err.Error(), 402)
-		return
-	}
-
-	config := cfg.Config{}
-	configData := config.Init()
-
-	dbConnection := db.NewDb(configData)
-
-	dbConnection.First(&role, Role{Name: payload.RoleName})
-
-	roleUser := &RoleUser{
-		UserId: payload.UserID,
-		RoleId: role.ID,
-	}
-	tx := dbConnection.FirstOrCreate(roleUser)
-	tx.Commit()
-
-	Json(writer, roleUser, 201)
-}
-
-func RoleRoute() *mux.Router {
-	role := Role{}
 
 	r := mux.NewRouter()
 	router := r.PathPrefix("/role").Subrouter()
-	router.HandleFunc("/", role.CreateRole).Methods("POST")
-	router.HandleFunc("/user/{userId}", role.attachRole).Methods("POST")
+	router.HandleFunc("/", roleRepository.CreateRole).Methods("POST")
+	router.HandleFunc("/user/{userId}", roleRepository.attachRole).Methods("POST")
 	return router
 }

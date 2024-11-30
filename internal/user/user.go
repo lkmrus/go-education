@@ -1,6 +1,7 @@
 package user
 
 import (
+	"demo/app/pkg/db"
 	"encoding/json"
 	"fmt"
 	"github.com/go-playground/validator/v10"
@@ -16,20 +17,22 @@ type User struct {
 	Name     string `json:"name"`
 	Email    string `json:"email" gorm:"uniqueIndex"`
 	Password string `json:"password"`
-	Repo     *UserRepository
 }
 
-func UserRoute() *mux.Router {
-	user := User{}
-
+func UserRoute(dbConnection *db.Db) *mux.Router {
 	r := mux.NewRouter()
 	router := r.PathPrefix("/user").Subrouter()
-	router.HandleFunc("/register", user.register).Methods("POST")
-	router.HandleFunc("/login", user.login).Methods("POST")
+
+	userRepo := UserRepository{
+		Database: dbConnection,
+	}
+
+	router.HandleFunc("/register", userRepo.register).Methods("POST")
+	router.HandleFunc("/login", userRepo.login).Methods("POST")
 	return router
 }
 
-func (u *User) register(writer http.ResponseWriter, request *http.Request) {
+func (uRepo *UserRepository) register(writer http.ResponseWriter, request *http.Request) {
 	var payload RegisterRequest
 
 	err := json.NewDecoder(request.Body).Decode(&payload)
@@ -55,13 +58,12 @@ func (u *User) register(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	fmt.Println(hash)
-
-	result, createErr := u.Repo.CreateUser(&User{
+	result, createErr := uRepo.CreateUser(&User{
 		Name:     payload.Name,
 		Email:    payload.Email,
 		Password: hash,
 	})
+	fmt.Println(result)
 
 	if createErr != nil {
 		Json(writer, createErr.Error(), 500)
@@ -77,7 +79,7 @@ func (u *User) register(writer http.ResponseWriter, request *http.Request) {
 	writer.Write(jsonBytes)
 }
 
-func (u *User) login(writer http.ResponseWriter, request *http.Request) {
+func (uRepo *UserRepository) login(writer http.ResponseWriter, request *http.Request) {
 	var payload LoginRequest
 	response := LoginResponse{
 		Token: "token",
