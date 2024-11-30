@@ -21,7 +21,4 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: false
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/go-education:latest
-          secrets: |
-            DOCKER_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }}
-            DOCKER_PASSWORD=${{ secrets.DOCKER_HUB_PASSWORD }}
+          tags: lkmrus/go-education:latest
