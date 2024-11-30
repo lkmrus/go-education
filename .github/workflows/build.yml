@@ -31,7 +31,7 @@ jobs:
           DN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         with:
           context: .
-          file: Dockerfile
+          file: ./Dockerfile
           push: false
           tags: lkmrus/go-education:latest
 
