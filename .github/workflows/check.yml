@@ -11,6 +11,7 @@ jobs:
       - name: Lint
         run: go vet ./cmd
   test:
+    needs: [lint]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
