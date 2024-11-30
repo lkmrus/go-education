@@ -31,12 +31,12 @@ jobs:
           DN_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
         with:
           context: ./app
-          file: ./app/Dockerfile
+          file: ./Dockerfile
           platforms: linux/amd64
           push: false
           tags: lkmrus/go-education:latest
 
-      - name: Run tests (если необходимо)
+      - name: Run tests
         run: |
             docker run --env DB_DSN=postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable lkmrus/go-education:latest
 
