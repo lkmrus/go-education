@@ -8,8 +8,6 @@ RUN go mod tidy
 
 COPY . .
 
-RUN go build -o main .
+RUN go build -o ./cmd/main ./cmd
 
 CMD ["/app/cmd/main"]
-
-
