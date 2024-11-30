@@ -8,3 +8,14 @@ jobs:
         uses: actions/checkout@v4
       - name: Install deps
         run: go mod tidy
+      - name: Lint
+        run: go vet ./cmd
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install deps
+        run: go mod tidy
+      - name: Test
+        run: go test -v ./cmd
